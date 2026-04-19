@@ -1,9 +1,3 @@
-"""
-Snake+ — version0 scaffold: all architecture constants (EC327).
-
-Exact values from design brief (plus derived / forward-looking names).
-"""
-
 from __future__ import annotations
 
 # --- Grid / window (derived) ---
