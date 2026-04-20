@@ -78,3 +78,14 @@ class Snake:
     def update_timers(self, dt_s: float) -> None:
         if self.invincible_s > 0:
             self.invincible_s = max(0.0, self.invincible_s - dt_s)
+
+    def is_invincible(self) -> bool:
+        return self.invincible_s > 0
+    
+    def take_hit(self) -> str:
+        if self.is_invincible():
+            return "ignored"
+        self.hp = max(0, self.hp - 1)
+        self.invincible_s = C.INVINCIBILITY_DURATION_S
+        self.flash = FlashState(remaining_s=C.INVINCIBILITY_DURATION_S, color=C.COLOR_SNAKE_DAMAGE)
+        return "damaged"
