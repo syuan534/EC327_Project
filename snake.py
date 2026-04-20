@@ -18,6 +18,8 @@ class Snake:
         self.body: Deque[Cell] = deque()
         self.direction: Cell = DIR_RIGHT
         self._pending_growth: int = 0
+        self.hp: int = C.PLAYER_MAX_HP
+        self.invincible_s: float = 0.0
 
     def reset(self) -> None:
         self.body.clear()
@@ -26,6 +28,9 @@ class Snake:
             self.body.append((hx - i, hy))
         self.direction = DIR_RIGHT
         self._pending_growth = 0
+        self.hp = C.PLAYER_MAX_HP
+        self.invincible_s = 0.0
+        self.flash = None
 
     @property
     def head(self) -> Cell:
@@ -33,6 +38,9 @@ class Snake:
 
     def occupies(self) -> Iterable[Cell]:
         return list(self.body)
+
+    def length(self) -> int:
+        return len(self.body)
 
     def set_direction(self, new_dir: Cell) -> None:
         dx, dy = new_dir
@@ -63,3 +71,10 @@ class Snake:
             self._pending_growth -= 1
         else:
             self.body.pop()
+
+    def grow(self, n: int) -> None:
+        self._pending_growth += max(0, int(n))
+
+    def update_timers(self, dt_s: float) -> None:
+        if self.invincible_s > 0:
+            self.invincible_s = max(0.0, self.invincible_s - dt_s)
