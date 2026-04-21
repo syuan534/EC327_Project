@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Deque, Iterable
+from dataclasses import dataclass
+from typing import Deque, Iterable, Optional
 
 import constants as C
 from world import Cell, Grid
@@ -11,6 +12,10 @@ DIR_DOWN = (0, 1)
 DIR_LEFT = (-1, 0)
 DIR_RIGHT = (1, 0)
 
+@dataclass
+class FlashState:
+    remaining_s: float
+    color: tuple[int, int, int]
 
 class Snake:
     def __init__(self, grid: Grid) -> None:
@@ -20,6 +25,8 @@ class Snake:
         self._pending_growth: int = 0
         self.hp: int = C.PLAYER_MAX_HP
         self.invincible_s: float = 0.0
+        self.flash: Optional[FlashState] = None
+
 
     def reset(self) -> None:
         self.body.clear()
@@ -78,9 +85,16 @@ class Snake:
     def update_timers(self, dt_s: float) -> None:
         if self.invincible_s > 0:
             self.invincible_s = max(0.0, self.invincible_s - dt_s)
+        if self.flash:
+            self.flash.remaining_s -= dt_s
+            if self.flash.remaining_s <= 0:
+                self.flash = None
 
     def is_invincible(self) -> bool:
         return self.invincible_s > 0
+    
+    def flash_color(self) -> Optional[tuple[int, int, int]]:
+        return self.flash.color if self.flash else None
     
     def take_hit(self) -> str:
         if self.is_invincible():
