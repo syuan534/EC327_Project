@@ -3,14 +3,16 @@ from __future__ import annotations
 import pygame
 
 import constants as C
+from enemies import EnemyManager
+from items import ItemManager
 from snake import Snake
 
 
 class Renderer:
     def __init__(self) -> None:
         pygame.font.init()
-        self._title = pygame.font.Font(None, 52)
-        self._hint = pygame.font.Font(None, 26)
+        self._title = pygame.font.Font(None, 48)
+        self._label = pygame.font.Font(None, 22)
         self._score = pygame.font.Font(None, 34)
 
     def draw_menu(self, screen: pygame.Surface, high_score: int) -> None:
@@ -31,10 +33,12 @@ class Renderer:
         high_score: int,
         hp: int,
         snake: Snake,
+        items: ItemManager,
+        enemies: EnemyManager,
         game_over: bool,
     ) -> None:
         screen.fill(C.COLOR_BG)
-        self._draw_arena(screen, snake)
+        self._draw_arena(screen, snake, items, enemies)
         self._draw_sidebar(screen, score, high_score, snake.length(), hp)
         if game_over or state == C.STATE_GAME_OVER:
             ov = pygame.Surface((C.WINDOW_WIDTH, C.WINDOW_HEIGHT), pygame.SRCALPHA)
@@ -46,6 +50,15 @@ class Renderer:
             screen.blit(go, (cx - go.get_width() // 2, cy - 20))
             screen.blit(r, (cx - r.get_width() // 2, cy + 28))
 
+    def _snake_color(self, snake: Snake, segment_index: int) -> tuple[int, int, int]:
+        fc = snake.flash_color()
+        if fc and snake.is_invincible():
+            pulse = (pygame.time.get_ticks() // 120) % 2
+            return fc if pulse == 0 else (C.COLOR_SNAKE_BODY if segment_index else C.COLOR_SNAKE_HEAD)
+        if fc:
+            return fc
+        return C.COLOR_SNAKE_HEAD if segment_index == 0 else C.COLOR_SNAKE_BODY
+    
     def _draw_arena(self, screen: pygame.Surface, snake: Snake, items: ItemManager, enemies: EnemyManager) -> None:
         _ = enemies
         surf = pygame.Surface((C.ARENA_WIDTH, C.ARENA_HEIGHT))

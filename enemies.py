@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Set
 
-from world import Cell
+from world import Cell, Grid
 
 
 class EnemyManager:
-    def __init__(self, grid: object) -> None:
-        pass
+    def __init__(self, grid: Grid) -> None:
+        _ = grid
 
     def reset(self) -> None:
         pass

@@ -7,7 +7,7 @@ from world import Cell, Grid
 
 
 class ItemManager:
-    def __init__(self, grid: object) -> None:
+    def __init__(self, grid: Grid) -> None:
         self.grid = grid
         self.normal_food: List[Cell] = []
         self._retry_accum_s: float = 0.0

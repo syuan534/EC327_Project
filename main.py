@@ -34,7 +34,7 @@ def save_high_score(v: int) -> None:
 
 def main() -> None:
     pygame.init()
-    pygame.display.set_caption("Snake+ v1a")
+    pygame.display.set_caption("Snake+ v2a")
     screen = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT))
     clock = pygame.time.Clock()
 
@@ -84,29 +84,38 @@ def main() -> None:
                     state = C.STATE_PLAYING
 
         if state == C.STATE_MENU:
-            renderer.draw_menu(screen)
+            renderer.draw_menu(screen, high_score)
         elif state == C.STATE_PLAYING:
+            snake.update_timers(dt)
             occ_snake = set(snake.occupies())
             occ_items = items.occupied_cells()
             occ_en = enemies.occupied_cells()
             spawn_occ = occ_snake | occ_items | occ_en
-            items.update(dt, spawn_occ, snake.head, 3, score)
+            items.update(dt, spawn_occ, snake.head, snake.hp, score)
 
-            if snake.would_hit_wall() or snake.would_self_bite():
+            if snake.would_self_bite():
+                snake.hp = 0
                 state = C.STATE_GAME_OVER
                 if score > high_score:
                     high_score = score
                     save_high_score(high_score)
+            elif snake.would_hit_wall():
+                snake.take_hit()
+                if snake.hp <= 0:
+                    state = C.STATE_GAME_OVER
+                    if score > high_score:
+                        high_score = score
+                        save_high_score(high_score)
             else:
                 snake.move_to(snake.next_head())
                 fx = items.try_collect_at_head(snake.head)
                 if fx:
                     score += int(fx.get("score", 0))
                     snake.grow(int(fx.get("grow", 0)))
-                    
-            renderer.draw(screen, state, snake, game_over=False)
+
+            renderer.draw(screen, state, score, high_score, snake.hp, snake, items, enemies, game_over=False)
         else:
-            renderer.draw(screen, state, snake, game_over=True)
+            renderer.draw(screen, state, score, high_score, snake.hp, snake, items, enemies, game_over=True)
 
         pygame.display.flip()
 
