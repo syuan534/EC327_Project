@@ -1,5 +1,4 @@
 """Grid — bounded arena."""
-
 from __future__ import annotations
 
 import random
