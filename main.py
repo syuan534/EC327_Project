@@ -34,7 +34,7 @@ def save_high_score(v: int) -> None:
 
 def main() -> None:
     pygame.init()
-    pygame.display.set_caption("Snake+ v2a")
+    pygame.display.set_caption("Snake+ v2b")
     screen = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT))
     clock = pygame.time.Clock()
 
@@ -55,12 +55,14 @@ def main() -> None:
         enemies.reset()
         occ: Set[tuple[int, int]] = set(snake.occupies())
         items.reset(occ)
+        renderer.particles = []
 
     reset()
     running = True
 
     while running:
         dt = clock.tick(C.BASE_FPS) / 1000.0
+        renderer.update_fx(dt)
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT:
                 running = False
@@ -92,14 +94,16 @@ def main() -> None:
             occ_en = enemies.occupied_cells()
             spawn_occ = occ_snake | occ_items | occ_en
             items.update(dt, spawn_occ, snake.head, snake.hp, score)
+            enemies.update(dt, score, spawn_occ)
 
+            attempted = snake.next_head()
             if snake.would_self_bite():
                 snake.hp = 0
                 state = C.STATE_GAME_OVER
                 if score > high_score:
                     high_score = score
                     save_high_score(high_score)
-            elif snake.would_hit_wall():
+            elif snake.would_hit_wall() or attempted in enemies.blocker_cells():
                 snake.take_hit()
                 if snake.hp <= 0:
                     state = C.STATE_GAME_OVER
@@ -107,11 +111,15 @@ def main() -> None:
                         high_score = score
                         save_high_score(high_score)
             else:
-                snake.move_to(snake.next_head())
+                snake.move_to(attempted)
                 fx = items.try_collect_at_head(snake.head)
                 if fx:
                     score += int(fx.get("score", 0))
                     snake.grow(int(fx.get("grow", 0)))
+                    if fx.get("golden"):
+                        renderer.spawn_eat_particles(snake.head, C.COLOR_FOOD_GOLDEN)
+                    else:
+                        renderer.spawn_eat_particles(snake.head, C.COLOR_FOOD)
 
             renderer.draw(screen, state, score, high_score, snake.hp, snake, items, enemies, game_over=False)
         else:
